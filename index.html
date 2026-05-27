@@ -1,0 +1,1640 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEMESIS // 復仇女神號 :: 規則手冊</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Major+Mono+Display&family=JetBrains+Mono:wght@300;400;600;800&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0d0c;
+  --bg-2: #111614;
+  --bg-3: #161c19;
+  --ink: #d8e3dc;
+  --ink-dim: #7a8a83;
+  --blood: #c9342a;
+  --blood-deep: #6b1410;
+  --acid: #8fff5e;
+  --acid-dim: #3a7a2a;
+  --amber: #f4b13a;
+  --steel: #5a6b65;
+  --warn: #ff4a3d;
+  --plasma: #9b6dff;
+  --scan: rgba(143, 255, 94, 0.04);
+  --sidebar-w: 280px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 300;
+  line-height: 1.6;
+  overflow-x: hidden;
+  background-image:
+    radial-gradient(circle at 50% 50%, rgba(143, 255, 94, 0.02) 1px, transparent 1px),
+    radial-gradient(circle at 0% 100%, rgba(201, 52, 42, 0.04) 0%, transparent 50%);
+  background-size: 32px 32px, 100% 100%;
+}
+
+/* CRT scanlines */
+body::before {
+  content: ''; position: fixed; inset: 0;
+  background: repeating-linear-gradient(0deg, transparent 0px, transparent 2px, var(--scan) 2px, var(--scan) 3px);
+  pointer-events: none; z-index: 200; mix-blend-mode: overlay;
+}
+body::after {
+  content: ''; position: fixed; inset: 0;
+  background: radial-gradient(ellipse at center, transparent 0%, rgba(0,0,0,0.55) 100%);
+  pointer-events: none; z-index: 199;
+}
+
+/* ============ APP LAYOUT ============ */
+.app {
+  display: grid;
+  grid-template-columns: var(--sidebar-w) 1fr;
+  min-height: 100vh;
+  position: relative;
+  z-index: 1;
+}
+
+/* ============ SIDEBAR ============ */
+.sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  background: var(--bg-2);
+  border-right: 1px solid var(--acid-dim);
+  display: flex;
+  flex-direction: column;
+  z-index: 30;
+  overflow-y: auto;
+}
+.sidebar::-webkit-scrollbar { width: 6px; }
+.sidebar::-webkit-scrollbar-track { background: transparent; }
+.sidebar::-webkit-scrollbar-thumb { background: var(--acid-dim); border-radius: 3px; }
+
+.sb-header {
+  padding: 1.5rem 1.2rem 1rem;
+  border-bottom: 1px solid var(--steel);
+  position: relative;
+}
+.sb-header::before {
+  content: ''; position: absolute;
+  top: 0.6rem; right: 0.6rem;
+  width: 8px; height: 8px;
+  border-radius: 50%; background: var(--blood);
+  animation: pulse 1.4s infinite;
+  box-shadow: 0 0 8px var(--blood);
+}
+@keyframes pulse {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0.25; }
+}
+.sb-eyebrow {
+  font-family: 'Major Mono Display', monospace;
+  font-size: 0.6rem; letter-spacing: 0.3em;
+  color: var(--acid);
+  margin-bottom: 0.4rem;
+}
+.sb-title {
+  font-family: 'Major Mono Display', monospace;
+  font-size: 1.1rem; letter-spacing: 0.04em;
+  color: var(--ink);
+  line-height: 1.2;
+}
+.sb-title .blood { color: var(--blood); }
+.sb-sub {
+  font-size: 0.7rem; color: var(--ink-dim);
+  letter-spacing: 0.2em;
+  margin-top: 0.4rem;
+  font-family: 'Major Mono Display', monospace;
+}
+
+/* Search */
+.sb-search {
+  padding: 0.8rem 1rem;
+  border-bottom: 1px dashed var(--steel);
+}
+.sb-search input {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--steel);
+  color: var(--ink);
+  padding: 0.5rem 0.7rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.sb-search input:focus {
+  border-color: var(--acid);
+  box-shadow: 0 0 0 2px rgba(143, 255, 94, 0.15);
+}
+.sb-search input::placeholder { color: var(--ink-dim); }
+
+/* TOC */
+.sb-toc {
+  flex: 1;
+  padding: 0.5rem 0;
+  overflow-y: auto;
+}
+.sb-link {
+  display: flex;
+  align-items: baseline;
+  gap: 0.8rem;
+  padding: 0.7rem 1.2rem;
+  text-decoration: none;
+  color: var(--ink-dim);
+  border-left: 3px solid transparent;
+  transition: all 0.2s;
+  position: relative;
+}
+.sb-link:hover {
+  background: rgba(143, 255, 94, 0.06);
+  color: var(--ink);
+}
+.sb-link.active {
+  background: rgba(201, 52, 42, 0.1);
+  border-left-color: var(--blood);
+  color: var(--ink);
+}
+.sb-num {
+  font-family: 'Major Mono Display', monospace;
+  font-size: 0.7rem;
+  color: var(--blood);
+  letter-spacing: 0.1em;
+  min-width: 1.5rem;
+}
+.sb-text { font-size: 0.85rem; letter-spacing: 0.05em; }
+.sb-text .eng {
+  display: block;
+  font-size: 0.6rem;
+  color: var(--ink-dim);
+  margin-top: 0.15rem;
+  letter-spacing: 0.2em;
+  font-family: 'Major Mono Display', monospace;
+}
+.sb-link.hidden { display: none; }
+
+/* Sidebar footer */
+.sb-foot {
+  padding: 0.8rem 1.2rem;
+  border-top: 1px solid var(--steel);
+  font-family: 'Major Mono Display', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  color: var(--ink-dim);
+  background: var(--bg-3);
+}
+.sb-foot .stat {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.3rem;
+}
+.sb-foot .stat:last-child { margin-bottom: 0; }
+.sb-foot .stat span:last-child { color: var(--acid); }
+
+/* ============ MAIN ============ */
+.content {
+  padding: 0 0 6rem;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+.content-inner {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 2rem 2.5rem 2rem;
+}
+
+/* HUD bar */
+.hud {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 1rem;
+  align-items: center;
+  padding: 0.7rem 1.5rem;
+  border-bottom: 1px solid var(--acid-dim);
+  background: rgba(10, 13, 12, 0.95);
+  backdrop-filter: blur(4px);
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  color: var(--acid);
+  position: sticky;
+  top: 0;
+  z-index: 25;
+  font-family: 'Major Mono Display', monospace;
+}
+.hud-l, .hud-r { display: flex; gap: 1.2rem; }
+.hud-r { justify-content: flex-end; }
+.hud-c {
+  color: var(--ink);
+  font-size: 0.75rem;
+  text-align: center;
+}
+.hud-dot {
+  display: inline-block;
+  width: 7px; height: 7px;
+  background: var(--blood); border-radius: 50%;
+  margin-right: 0.4rem;
+  animation: pulse 1.4s infinite;
+  box-shadow: 0 0 6px var(--blood);
+}
+.progress-track {
+  position: sticky; top: 0;
+  height: 2px;
+  background: rgba(143,255,94,0.05);
+  z-index: 26;
+}
+.progress-bar {
+  height: 100%; width: 0;
+  background: linear-gradient(90deg, var(--acid-dim), var(--acid), var(--amber), var(--blood));
+  box-shadow: 0 0 8px var(--acid);
+  transition: width 0.1s;
+}
+
+/* Hero */
+.hero {
+  padding: 3.5rem 0 3rem;
+  text-align: center;
+  border-bottom: 1px dashed var(--steel);
+  margin-bottom: 3rem;
+  position: relative;
+}
+.hero::before {
+  content: 'NMSS // CLASS-D HAULER // RULEBOOK v3.7';
+  position: absolute;
+  top: 1rem; left: 50%; transform: translateX(-50%);
+  font-size: 0.6rem; letter-spacing: 0.4em;
+  color: var(--ink-dim);
+  font-family: 'Major Mono Display', monospace;
+}
+.hero-warn {
+  display: inline-block;
+  padding: 0.35rem 1rem;
+  border: 1px solid var(--warn);
+  color: var(--warn);
+  font-size: 0.65rem;
+  letter-spacing: 0.4em;
+  margin-bottom: 1.8rem;
+  font-family: 'Major Mono Display', monospace;
+  animation: glow-warn 2.4s infinite;
+}
+@keyframes glow-warn {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255,74,61,0.4); }
+  50% { box-shadow: 0 0 0 10px rgba(255,74,61,0); }
+}
+.hero h1 {
+  font-family: 'Major Mono Display', monospace;
+  font-size: clamp(2.2rem, 5.5vw, 4.4rem);
+  letter-spacing: 0.05em;
+  line-height: 0.95;
+  margin-bottom: 0.6rem;
+  color: var(--ink);
+  text-shadow: 0 0 30px rgba(216, 227, 220, 0.15);
+}
+.hero h1 .blood {
+  color: var(--blood);
+  text-shadow: 0 0 16px rgba(201, 52, 42, 0.5);
+}
+.hero-sub {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 1.1rem;
+  color: var(--ink-dim);
+  max-width: 540px;
+  margin: 0 auto 2rem;
+}
+.hero-meta {
+  display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap;
+  font-size: 0.7rem; letter-spacing: 0.2em;
+  color: var(--ink-dim);
+  font-family: 'Major Mono Display', monospace;
+}
+.hero-meta span strong {
+  display: block;
+  color: var(--acid);
+  font-size: 1rem;
+  margin-top: 0.2rem;
+  letter-spacing: 0.05em;
+}
+
+/* ============ SECTIONS ============ */
+section.chapter {
+  scroll-margin-top: 5rem;
+  margin-bottom: 3rem;
+  border: 1px solid var(--steel);
+  background: rgba(17, 22, 20, 0.4);
+  position: relative;
+  transition: border-color 0.3s;
+}
+section.chapter:hover { border-color: rgba(122, 138, 131, 0.7); }
+section.chapter::before, section.chapter::after {
+  content: '';
+  position: absolute;
+  width: 14px; height: 14px;
+}
+section.chapter::before {
+  top: -1px; left: -1px;
+  border-top: 2px solid var(--acid);
+  border-left: 2px solid var(--acid);
+}
+section.chapter::after {
+  bottom: -1px; right: -1px;
+  border-bottom: 2px solid var(--acid);
+  border-right: 2px solid var(--acid);
+}
+section.chapter.danger::before, section.chapter.danger::after { border-color: var(--blood); }
+section.chapter.amber::before, section.chapter.amber::after { border-color: var(--amber); }
+
+.ch-head {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  padding: 1.2rem 1.5rem;
+  cursor: pointer;
+  user-select: none;
+  border-bottom: 1px solid transparent;
+  transition: all 0.25s;
+}
+.ch-head:hover { background: rgba(143, 255, 94, 0.04); }
+section.chapter:not(.collapsed) .ch-head { border-bottom-color: var(--steel); }
+
+.ch-num {
+  font-family: 'Major Mono Display', monospace;
+  font-size: 1.6rem;
+  color: var(--blood);
+  line-height: 1;
+  min-width: 2.4rem;
+}
+.ch-title-wrap { flex: 1; }
+.ch-title {
+  font-family: 'Major Mono Display', monospace;
+  font-size: clamp(1.1rem, 2vw, 1.5rem);
+  letter-spacing: 0.04em;
+  color: var(--ink);
+  line-height: 1.2;
+}
+.ch-eng {
+  font-family: 'Major Mono Display', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.3em;
+  color: var(--ink-dim);
+  margin-top: 0.2rem;
+}
+.ch-toggle {
+  font-family: 'Major Mono Display', monospace;
+  font-size: 1rem;
+  color: var(--ink-dim);
+  transition: transform 0.3s, color 0.2s;
+}
+section.chapter.collapsed .ch-toggle { transform: rotate(-90deg); }
+.ch-head:hover .ch-toggle { color: var(--acid); }
+.ch-status {
+  font-family: 'Major Mono Display', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.25em;
+  padding: 0.25rem 0.7rem;
+  border: 1px solid currentColor;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.ch-status::before {
+  content: ''; width: 5px; height: 5px;
+  background: currentColor; border-radius: 50%;
+  animation: pulse 1.6s infinite;
+}
+.status-nominal { color: var(--acid); }
+.status-prep    { color: var(--ink-dim); }
+.status-cycle   { color: var(--amber); }
+.status-protocol{ color: var(--acid); }
+.status-critical{ color: var(--blood); }
+.status-fatal   { color: var(--warn); }
+.status-reference{ color: var(--ink-dim); }
+.status-quickref { color: var(--amber); }
+
+.ch-body {
+  padding: 1.5rem 1.8rem 2rem;
+  overflow: hidden;
+  max-height: 12000px;
+  transition: max-height 0.5s ease-out, padding 0.3s, opacity 0.3s;
+}
+section.chapter.collapsed .ch-body {
+  max-height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  opacity: 0;
+}
+
+/* Lead */
+.lead {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.15rem;
+  line-height: 1.55;
+  color: var(--ink);
+  font-style: italic;
+  margin-bottom: 1.8rem;
+  padding-left: 1.2rem;
+  border-left: 2px solid var(--blood);
+  max-width: 800px;
+}
+
+.ch-body p {
+  margin-bottom: 1rem;
+  color: var(--ink);
+  font-size: 0.92rem;
+  line-height: 1.7;
+}
+.ch-body strong { color: var(--amber); font-weight: 600; }
+.ch-body .blood-text { color: var(--blood); font-weight: 600; }
+.ch-body .acid-text { color: var(--acid); font-weight: 600; }
+.ch-body .plasma-text { color: var(--plasma); font-weight: 600; }
+.ch-body .warn-text { color: var(--warn); font-weight: 600; }
+
+/* Sub-heading */
+.subhead {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin: 2.2rem 0 1rem;
+  font-family: 'Major Mono Display', monospace;
+  font-size: 0.95rem;
+  letter-spacing: 0.15em;
+  color: var(--ink);
+}
+.subhead::before { content: '▌'; color: var(--acid); font-size: 0.9rem; }
+.subhead::after {
+  content: ''; flex: 1; height: 1px;
+  background: linear-gradient(90deg, var(--steel), transparent);
+}
+.subhead.blood::before { color: var(--blood); }
+.subhead.amber::before { color: var(--amber); }
+.subhead.plasma::before { color: var(--plasma); }
+
+/* Grid 2 cols */
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.2rem;
+  margin: 1.2rem 0;
+}
+
+/* Panels */
+.panel {
+  border: 1px solid var(--steel);
+  background: rgba(17, 22, 20, 0.6);
+  padding: 1.2rem;
+  position: relative;
+}
+.panel::before, .panel::after {
+  content: ''; position: absolute;
+  width: 10px; height: 10px;
+}
+.panel::before { top: -1px; left: -1px; border-top: 2px solid var(--acid); border-left: 2px solid var(--acid); }
+.panel::after { bottom: -1px; right: -1px; border-bottom: 2px solid var(--acid); border-right: 2px solid var(--acid); }
+.panel.danger { border-color: var(--blood); }
+.panel.danger::before, .panel.danger::after { border-color: var(--blood); }
+.panel.amber { border-color: var(--amber); }
+.panel.amber::before, .panel.amber::after { border-color: var(--amber); }
+.panel.plasma { border-color: var(--plasma); }
+.panel.plasma::before, .panel.plasma::after { border-color: var(--plasma); }
+.panel h4 {
+  font-family: 'Major Mono Display', monospace;
+  font-size: 0.85rem;
+  letter-spacing: 0.1em;
+  color: var(--acid);
+  margin-bottom: 0.7rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px dashed var(--acid-dim);
+}
+.panel.danger h4 { color: var(--blood); border-bottom-color: var(--blood-deep); }
+.panel.amber h4 { color: var(--amber); }
+.panel.plasma h4 { color: var(--plasma); border-bottom-color: rgba(155,109,255,0.4); }
+.panel p { font-size: 0.85rem; line-height: 1.55; margin-bottom: 0.6rem; }
+.panel p:last-child { margin-bottom: 0; }
+
+/* Spec list */
+ul.spec { list-style: none; margin-top: 0.5rem; }
+ul.spec li {
+  padding: 0.5rem 0;
+  border-bottom: 1px dashed rgba(122, 138, 131, 0.25);
+  font-size: 0.82rem;
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  line-height: 1.5;
+}
+ul.spec li::before { content: '▸'; color: var(--acid); font-size: 0.65rem; flex-shrink: 0; }
+ul.spec li strong { color: var(--amber); }
+ul.spec li:last-child { border-bottom: none; }
+
+/* Step list */
+ol.step-list { list-style: none; counter-reset: step; margin: 0.8rem 0; }
+ol.step-list > li {
+  counter-increment: step;
+  padding: 0.7rem 0 0.7rem 2.6rem;
+  position: relative;
+  border-bottom: 1px dashed rgba(122, 138, 131, 0.3);
+  font-size: 0.88rem;
+  line-height: 1.6;
+}
+ol.step-list > li::before {
+  content: counter(step, decimal-leading-zero);
+  position: absolute;
+  left: 0;
+  top: 0.7rem;
+  font-family: 'Major Mono Display', monospace;
+  font-size: 0.8rem;
+  color: var(--blood);
+  letter-spacing: 0.1em;
+}
+ol.step-list > li strong:first-of-type {
+  display: block;
+  color: var(--amber);
+  font-size: 0.95rem;
+  margin-bottom: 0.2rem;
+  letter-spacing: 0.05em;
+}
+
+/* Phase flow (2 columns) */
+.phase-flow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  border: 1px solid var(--steel);
+  margin: 1.2rem 0;
+}
+.phase-flow > div {
+  padding: 1.4rem;
+  position: relative;
+}
+.phase-flow > div:first-child {
+  border-right: 1px solid var(--steel);
+  background: linear-gradient(135deg, rgba(143, 255, 94, 0.04), transparent);
+}
+.phase-flow > div:last-child {
+  background: linear-gradient(135deg, rgba(201, 52, 42, 0.05), transparent);
+}
+.phase-label {
+  font-family: 'Major Mono Display', monospace;
+  font-size: 0.75rem; letter-spacing: 0.3em;
+  margin-bottom: 0.3rem;
+}
+.phase-flow > div:first-child .phase-label { color: var(--acid); }
+.phase-flow > div:last-child .phase-label { color: var(--blood); }
+.phase-title {
+  font-family: 'Major Mono Display', monospace;
+  font-size: 1.2rem;
+  color: var(--ink);
+  margin-bottom: 0.8rem;
+}
+
+/* Action grid */
+.action-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.8rem;
+  margin: 1rem 0;
+}
+.action-card {
+  border: 1px solid var(--steel);
+  padding: 1rem;
+  background: var(--bg-2);
+  transition: all 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+.action-card:hover {
+  border-color: var(--acid);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.4), 0 0 14px rgba(143,255,94,0.08);
+}
+.action-card::before {
+  content: attr(data-code);
+  position: absolute;
+  top: 0.4rem; right: 0.5rem;
+  font-family: 'Major Mono Display', monospace;
+  font-size: 0.6rem;
+  color: var(--ink-dim);
+  letter-spacing: 0.15em;
+}
+.action-card h5 {
+  font-family: 'Major Mono Display', monospace;
+  font-size: 0.9rem;
+  color: var(--acid);
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.03em;
+}
+.action-card p {
+  font-size: 0.76rem;
+  color: var(--ink-dim);
+  margin-bottom: 0;
+  line-height: 1.5;
+}
+.action-card .cost {
+  display: inline-block;
+  margin-top: 0.6rem;
+  padding: 0.15rem 0.5rem;
+  background: var(--blood-deep);
+  color: var(--ink);
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+}
+
+/* Intruder table */
+.intruder-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+  margin: 1rem 0;
+}
+.intruder-table th {
+  background: var(--blood-deep);
+  color: var(--ink);
+  padding: 0.7rem;
+  text-align: left;
+  font-family: 'Major Mono Display', monospace;
+  font-weight: normal;
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  border: 1px solid var(--blood);
+}
+.intruder-table td {
+  padding: 0.8rem;
+  border: 1px solid var(--steel);
+  vertical-align: top;
+}
+.intruder-table tbody tr { transition: background 0.2s; }
+.intruder-table tbody tr:hover { background: rgba(201, 52, 42, 0.08); }
+.intruder-table tr:nth-child(even) { background: rgba(17, 22, 20, 0.5); }
+.intruder-table .name {
+  font-family: 'Major Mono Display', monospace;
+  color: var(--blood);
+  letter-spacing: 0.05em;
+}
+.threat {
+  display: inline-block;
+  padding: 0.08rem 0.5rem;
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  background: var(--bg-2);
+  border: 1px solid;
+}
+.threat.low { color: var(--acid); border-color: var(--acid-dim); }
+.threat.mid { color: var(--amber); border-color: var(--amber); }
+.threat.high { color: var(--warn); border-color: var(--warn); }
+.threat.boss { color: #fff; background: var(--blood); border-color: var(--blood); }
+
+/* Callouts */
+.callout {
+  margin: 1.4rem 0;
+  padding: 1rem 1.2rem 1rem 2.6rem;
+  border: 1px solid var(--steel);
+  background: rgba(17, 22, 20, 0.55);
+  position: relative;
+  font-size: 0.88rem;
+  line-height: 1.6;
+}
+.callout::before {
+  content: ''; position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 4px; background: currentColor;
+}
+.callout .tag {
+  display: inline-block;
+  font-family: 'Major Mono Display', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.3em;
+  margin-bottom: 0.3rem;
+  padding: 0.1rem 0.4rem;
+  border: 1px solid currentColor;
+}
+.callout .icon {
+  position: absolute;
+  left: 0.9rem; top: 0.95rem;
+  font-family: 'Major Mono Display', monospace;
+  font-size: 1.1rem; font-weight: bold;
+}
+.callout p { margin: 0; color: var(--ink); }
+.callout p + p { margin-top: 0.5rem; }
+.callout.intel { color: var(--acid); border-color: var(--acid-dim); }
+.callout.alert { color: var(--warn); border-color: var(--warn); background: rgba(255,74,61,0.04); }
+.callout.archive { color: var(--amber); border-color: var(--amber); }
+.callout.contam { color: var(--plasma); border-color: var(--plasma); background: rgba(155,109,255,0.04); }
+.callout.tip { color: var(--amber); border-color: var(--amber); background: linear-gradient(180deg, rgba(244,177,58,0.06), transparent); }
+.callout.tip p { color: var(--amber); font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 1rem; }
+
+/* Image gallery */
+.fig {
+  margin: 1.5rem 0;
+  position: relative;
+}
+.fig img {
+  width: 100%;
+  display: block;
+  border: 1px solid var(--steel);
+  cursor: zoom-in;
+  transition: border-color 0.25s, transform 0.25s;
+}
+.fig:hover img {
+  border-color: var(--acid);
+}
+.fig figcaption {
+  margin-top: 0.5rem;
+  font-size: 0.72rem;
+  color: var(--ink-dim);
+  text-align: center;
+  letter-spacing: 0.05em;
+  font-family: 'Major Mono Display', monospace;
+}
+.fig figcaption .fig-num {
+  color: var(--blood);
+  margin-right: 0.4rem;
+}
+
+.fig-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+.fig-grid .fig { margin: 0; }
+
+/* Image zoom modal */
+.zoom-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.92);
+  z-index: 100;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  cursor: zoom-out;
+  backdrop-filter: blur(8px);
+}
+.zoom-modal.active { display: flex; }
+.zoom-modal img {
+  max-width: 100%;
+  max-height: 100%;
+  border: 1px solid var(--acid);
+  box-shadow: 0 0 40px rgba(143,255,94,0.2);
+}
+.zoom-modal::after {
+  content: 'ESC / 點擊任意處關閉';
+  position: absolute;
+  bottom: 1.5rem; left: 50%; transform: translateX(-50%);
+  font-family: 'Major Mono Display', monospace;
+  font-size: 0.7rem;
+  color: var(--acid);
+  letter-spacing: 0.2em;
+}
+
+/* Decorative dividers */
+.barcode {
+  height: 12px;
+  margin: 2rem 0 1.2rem;
+  background-image:
+    linear-gradient(90deg,
+      var(--steel) 0 3px, transparent 3px 7px,
+      var(--steel) 7px 9px, transparent 9px 16px,
+      var(--steel) 16px 21px, transparent 21px 24px,
+      var(--blood) 24px 26px, transparent 26px 33px,
+      var(--steel) 33px 37px, transparent 37px 41px,
+      var(--steel) 41px 44px, transparent 44px 52px,
+      var(--steel) 52px 55px, transparent 55px 60px,
+      var(--acid-dim) 60px 63px, transparent 63px 72px,
+      var(--steel) 72px 76px, transparent 76px 80px,
+      var(--steel) 80px 83px, transparent 83px 90px,
+      var(--steel) 90px 95px, transparent 95px 100px
+    );
+  background-size: 100px 100%;
+  opacity: 0.5;
+}
+
+/* Footer */
+.foot {
+  margin-top: 4rem;
+  padding-top: 2rem;
+  border-top: 1px dashed var(--steel);
+  text-align: center;
+  font-size: 0.7rem;
+  color: var(--ink-dim);
+  letter-spacing: 0.2em;
+  font-family: 'Major Mono Display', monospace;
+}
+.foot .quote {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 1.2rem;
+  color: var(--ink);
+  margin-bottom: 1.5rem;
+  letter-spacing: 0;
+}
+
+/* Toolbar */
+.toolbar {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 1.2rem;
+  flex-wrap: wrap;
+}
+.tb-btn {
+  border: 1px solid var(--steel);
+  background: var(--bg-2);
+  color: var(--ink-dim);
+  padding: 0.35rem 0.8rem;
+  font-family: 'Major Mono Display', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.tb-btn:hover {
+  border-color: var(--acid);
+  color: var(--acid);
+}
+
+/* Responsive */
+@media (max-width: 960px) {
+  :root { --sidebar-w: 220px; }
+  .content-inner { padding: 1.5rem 1.5rem; }
+  .hero { padding: 2.5rem 0 2rem; }
+}
+@media (max-width: 720px) {
+  .app { grid-template-columns: 1fr; }
+  .sidebar {
+    position: fixed;
+    top: 0; left: -100%;
+    width: 80%; max-width: 320px;
+    height: 100vh;
+    transition: left 0.3s;
+    box-shadow: 6px 0 24px rgba(0,0,0,0.6);
+  }
+  .sidebar.open { left: 0; }
+  .mobile-toggle {
+    display: flex !important;
+    position: fixed;
+    bottom: 1.2rem; right: 1.2rem;
+    width: 48px; height: 48px;
+    align-items: center; justify-content: center;
+    background: var(--blood);
+    color: var(--ink);
+    border-radius: 50%;
+    z-index: 40;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    font-family: 'Major Mono Display', monospace;
+    font-size: 1rem;
+    border: 1px solid var(--blood-deep);
+  }
+  .phase-flow { grid-template-columns: 1fr; }
+  .phase-flow > div:first-child { border-right: none; border-bottom: 1px solid var(--steel); }
+  .content-inner { padding: 1rem; }
+  .hud { font-size: 0.55rem; }
+}
+.mobile-toggle { display: none; }
+
+/* Scroll reveal */
+.reveal { opacity: 0; transform: translateY(16px); transition: opacity 0.7s, transform 0.7s; }
+.reveal.in { opacity: 1; transform: translateY(0); }
+</style>
+</head>
+<body>
+
+<!-- ============ ZOOM MODAL ============ -->
+<div class="zoom-modal" id="zoomModal" aria-hidden="true">
+  <img id="zoomImg" src="" alt="">
+</div>
+
+<!-- ============ MOBILE TOGGLE ============ -->
+<button class="mobile-toggle" id="mobileToggle" aria-label="開啟章節導航">≡</button>
+
+<div class="app">
+
+<!-- ============ SIDEBAR ============ -->
+<aside class="sidebar" id="sidebar">
+  <div class="sb-header">
+    <div class="sb-eyebrow">// CREW MANUAL v3.7</div>
+    <div class="sb-title">NEMESIS</div>
+    <div class="sb-title" style="margin-top:0.2rem"><span class="blood">復仇女神號</span></div>
+    <div class="sb-sub">// RULEBOOK INDEX</div>
+  </div>
+
+  <div class="sb-search">
+    <input type="text" id="sbSearch" placeholder="搜尋章節…" aria-label="搜尋章節">
+  </div>
+
+  <nav class="sb-toc" id="sbToc">
+    <a class="sb-link" href="#overview" data-keywords="概述 目標 對手 張力 半合作">
+      <span class="sb-num">01</span>
+      <span class="sb-text">遊戲概述<span class="eng">OVERVIEW</span></span>
+    </a>
+    <a class="sb-link" href="#setup" data-keywords="設置 主板 房間磚 入侵者袋 角色 屍體 低溫">
+      <span class="sb-num">02</span>
+      <span class="sb-text">遊戲設置<span class="eng">SETUP</span></span>
+    </a>
+    <a class="sb-link" href="#turn" data-keywords="回合 階段 玩家 事件 補牌 PASS">
+      <span class="sb-num">03</span>
+      <span class="sb-text">回合結構<span class="eng">TURN STRUCTURE</span></span>
+    </a>
+    <a class="sb-link" href="#actions" data-keywords="動作 移動 射擊 近戰 探索 製作 急救 觀察 PASS">
+      <span class="sb-num">04</span>
+      <span class="sb-text">玩家動作<span class="eng">ACTIONS</span></span>
+    </a>
+    <a class="sb-link" href="#intruders" data-keywords="入侵者 幼蟲 爬行者 成體 繁殖者 女王 弱點">
+      <span class="sb-num">05</span>
+      <span class="sb-text">入侵者圖鑑<span class="eng">INTRUDERS</span></span>
+    </a>
+    <a class="sb-link" href="#combat" data-keywords="戰鬥 遭遇 攻擊 噪音 輕傷 重傷 感染">
+      <span class="sb-num">06</span>
+      <span class="sb-text">戰鬥與遭遇<span class="eng">COMBAT</span></span>
+    </a>
+    <a class="sb-link" href="#rooms" data-keywords="房間 巢穴 駕駛艙 引擎 休眠 逃生 醫療 餐廳 指揮">
+      <span class="sb-num">07</span>
+      <span class="sb-text">房間參考<span class="eng">ROOM REFERENCE</span></span>
+    </a>
+    <a class="sb-link" href="#quickref" data-keywords="速查 規則總結 玩家速查卡 Player Aid 流程圖">
+      <span class="sb-num">08</span>
+      <span class="sb-text">規則速查<span class="eng">QUICK REFERENCE</span></span>
+    </a>
+  </nav>
+
+  <div class="sb-foot">
+    <div class="stat"><span>玩家</span><span>1–5</span></div>
+    <div class="stat"><span>時間</span><span>90–180 MIN</span></div>
+    <div class="stat"><span>難度</span><span>HARD</span></div>
+    <div class="stat"><span>生存率</span><span>14.7%</span></div>
+  </div>
+</aside>
+
+<!-- ============ MAIN ============ -->
+<main class="content">
+
+<!-- Progress + HUD -->
+<div class="progress-track"><div class="progress-bar" id="progressBar"></div></div>
+<div class="hud">
+  <div class="hud-l">
+    <span><span class="hud-dot"></span>SYS // ONLINE</span>
+    <span id="oxyReadout">OXY: 67%</span>
+  </div>
+  <div class="hud-c" id="hudSection">SECTION — 01 OVERVIEW</div>
+  <div class="hud-r">
+    <span>CONTAMINATION: ACTIVE</span>
+    <span id="hudClock">T+ 00:00:00</span>
+  </div>
+</div>
+
+<div class="content-inner">
+
+<!-- Hero -->
+<div class="hero">
+  <div class="hero-warn">⚠ 警告：本艦已偵測到非預期生命跡象 ⚠</div>
+  <h1>規則手冊<br><span class="blood">RULEBOOK</span></h1>
+  <p class="hero-sub">「你從低溫休眠中醒來。警報在響。有一個人已經死了。<br>船員手冊就攤在你面前——你最好快點翻完。」</p>
+  <div class="hero-meta">
+    <span>玩家人數<strong>1–5</strong></span>
+    <span>遊戲時間<strong>90–180 MIN</strong></span>
+    <span>適齡<strong>12+</strong></span>
+    <span>難度<strong>HARD</strong></span>
+  </div>
+
+  <div class="toolbar" style="justify-content:center; margin-top:2rem;">
+    <button class="tb-btn" id="btnExpandAll">▼ 展開全部</button>
+    <button class="tb-btn" id="btnCollapseAll">▶ 全部摺起</button>
+  </div>
+</div>
+
+<!-- 圖：封面 -->
+<figure class="fig" style="max-width:520px; margin: 0 auto 3rem;">
+  <img src="assets/cover.jpg" alt="復仇女神號遊戲封面" data-zoom>
+  <figcaption><span class="fig-num">封面</span>復仇女神號 NEMESIS — Awaken Realms · 設計：Adam Kwapiński</figcaption>
+</figure>
+
+<!-- ============ 01 OVERVIEW ============ -->
+<section class="chapter" id="overview">
+  <div class="ch-head">
+    <span class="ch-num">01</span>
+    <div class="ch-title-wrap">
+      <div class="ch-title">遊戲概述</div>
+      <div class="ch-eng">OVERVIEW — 你為什麼會死</div>
+    </div>
+    <span class="ch-status status-nominal">STATUS — NOMINAL</span>
+    <span class="ch-toggle">▼</span>
+  </div>
+  <div class="ch-body">
+    <p class="lead">復仇女神號是一艘困在外太空的拖船。船員從低溫休眠中醒來，發現一具屍體、警報長鳴、未知生命形式已經登艦。每個人都有自己的祕密目標——而你必須在他們達成之前活著回家。</p>
+
+    <div class="grid-2">
+      <div class="panel">
+        <h4>// 你的目標</h4>
+        <p>遊戲開始時，每位玩家會抽到 <strong>兩張目標卡</strong>。當第一隻入侵者出現在主板時，你必須<strong>選一張保留</strong>，另一張永遠移出遊戲。</p>
+        <p>目標可能是「將船開往特定座標」「殺死特定怪物」「獨自逃生」「讓某位船員死亡」——是的，這是<span class="blood-text">半合作遊戲</span>。</p>
+      </div>
+      <div class="panel danger">
+        <h4>// 你的對手</h4>
+        <p>入侵者不是由任何玩家控制——它們由<span class="blood-text">入侵者袋（Intruder Bag）</span>的隨機抽取驅動。</p>
+        <p>它們很強。它們會繁殖。它們的卵會孵化。最糟的是：你可能已經被感染了。</p>
+      </div>
+      <div class="panel amber">
+        <h4>// 核心張力</h4>
+        <p>三條獨立計時齊頭並進——<strong>時間軌</strong>（船的航行）、<strong>自爆程序</strong>（緊急選項）、<strong>入侵者袋</strong>（怪物增長）。</p>
+        <p>你永遠手忙腳亂、永遠資源不足、永遠不知道下一張事件卡會把你的計劃撕成碎片。</p>
+      </div>
+    </div>
+
+    <div class="callout intel">
+      <span class="icon">▸</span>
+      <span class="tag">INTEL · 新手提示</span>
+      <p>第一次玩請選擇<strong>合作模式（co-op）</strong>而非競爭模式；先用基礎場景熟悉「噪音 → 抽袋 → 入侵者出現」的因果鏈，再開放目標卡的背叛機制。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 02 SETUP ============ -->
+<section class="chapter" id="setup">
+  <div class="ch-head">
+    <span class="ch-num">02</span>
+    <div class="ch-title-wrap">
+      <div class="ch-title">遊戲設置</div>
+      <div class="ch-eng">SETUP PROTOCOL — 9 個儀式</div>
+    </div>
+    <span class="ch-status status-prep">STATUS — PREP</span>
+    <span class="ch-toggle">▼</span>
+  </div>
+  <div class="ch-body">
+    <p class="lead">遊戲開始前的儀式：洗牌、發牌、把死人放進船艙。設置本身就是氛圍的一部分——當你把那枚藍色屍體標記放進低溫艙時，恐怖才正式開始。</p>
+
+    <h3 class="subhead">// Part A · 場上設置（步驟 1–7）</h3>
+
+    <ol class="step-list">
+      <li><strong>展開主板</strong>基礎面（左上角紅箭頭朝上）。從電腦室、發動機室開始向外是一座迷宮。</li>
+      <li><strong>放置房間磚</strong>：標 "2" 的磚牌洗勻、面朝下放在 "2" 格；剩下 "A1" 磚牌放在其他空格。每個房間放一枚<strong>探索標記</strong>面朝下。</li>
+      <li><strong>放置座標卡</strong>：洗勻後面朝下排成航線。船的最終目的地未知，直到有人去電腦室破解。</li>
+      <li><strong>逃生艙</strong>：依玩家人數揭示對應數量的逃生艙，<strong>每個逃生艙都有限制容量</strong>。</li>
+      <li><strong>發動機</strong>：每具發動機隨機放一枚標記——可能正常，可能損壞。</li>
+      <li><strong>入侵者袋</strong>：依劇本與玩家數放入指定的入侵者標記（包含幼蟲、成體、空白等）。</li>
+      <li><strong>事件牌堆</strong>：洗勻備用。每回合結尾翻一張，多半不是好消息。</li>
+    </ol>
+
+    <figure class="fig">
+      <img src="assets/room_types.jpg" alt="房間類型參考" data-zoom>
+      <figcaption><span class="fig-num">圖 2-1</span>房間類型參考 — 巢穴、儲藏室、手術室、氣閘控制室、餐廳、指揮中心、引擎控制室、減壓艙門控制系統、監控室、佈滿粘液的房間、浴室 …</figcaption>
+    </figure>
+
+    <h3 class="subhead amber">// Part B · 玩家設置（步驟 8–9）</h3>
+
+    <ol class="step-list" start="8">
+      <li><strong>角色設置</strong>每位玩家拿角色板、迷你模型、起始武器、彈藥、兩張<strong>目標卡</strong>、兩個<strong>支線任務標記</strong>、洗好的個人動作牌堆。</li>
+      <li><strong>儀式性的最後一步</strong>把藍色屍體標記放進<strong>低溫休眠室（Hibernatorium）</strong>。它代表那個沒能醒過來的同伴。整局遊戲它都會躺在那裡。</li>
+    </ol>
+
+    <figure class="fig">
+      <img src="assets/special_rooms.jpg" alt="特殊房間參考" data-zoom>
+      <figcaption><span class="fig-num">圖 2-2</span>特殊房間參考 — 駕駛艙、1/2/3號引擎室、休眠室、逃生艙</figcaption>
+    </figure>
+
+    <div class="callout tip">
+      <span class="tag">TIP · 第一具屍體</span>
+      <p>「第一具屍體永遠是藍色的。當你打開低溫艙的門看到他時——記得，他不是你殺的。但接下來死的可能是。」</p>
+    </div>
+  </div>
+</section>
+
+<div class="barcode" aria-hidden="true"></div>
+
+<!-- ============ 03 TURN ============ -->
+<section class="chapter" id="turn">
+  <div class="ch-head">
+    <span class="ch-num">03</span>
+    <div class="ch-title-wrap">
+      <div class="ch-title">回合結構</div>
+      <div class="ch-eng">TURN STRUCTURE — 兩個階段</div>
+    </div>
+    <span class="ch-status status-cycle">STATUS — CYCLE</span>
+    <span class="ch-toggle">▼</span>
+  </div>
+  <div class="ch-body">
+    <p class="lead">每一輪由兩個階段構成。玩家階段你還有幻覺以為自己掌握全局；事件階段船會告訴你誰才是主人。</p>
+
+    <div class="phase-flow">
+      <div>
+        <div class="phase-label">// PHASE I</div>
+        <div class="phase-title">玩家階段</div>
+        <ol class="step-list">
+          <li><strong>補牌</strong>每位玩家從動作牌堆抽牌直到手牌 5 張。牌堆抽完就洗棄牌堆重組。</li>
+          <li><strong>輪流行動</strong>從首位玩家開始順時針。每個玩家輪到時可<strong>執行最多 2 個動作</strong>，或選擇 PASS。</li>
+          <li><strong>動作來源</strong>動作牌可以作為任何「基本動作」打出，也可以打出卡面上的特殊動作。</li>
+          <li><strong>持續輪轉</strong>所有人都 PASS 後階段結束。已 PASS 的玩家不能再行動。</li>
+        </ol>
+      </div>
+      <div>
+        <div class="phase-label">// PHASE II</div>
+        <div class="phase-title">事件階段</div>
+        <ol class="step-list">
+          <li><strong>入侵者動作</strong>已在板上的所有入侵者依其行為卡執行行動。</li>
+          <li><strong>火災結算</strong>所有火災標記造成 1 點傷害給該房間的入侵者。</li>
+          <li><strong>翻開事件卡</strong>解析效果：時間推進、新威脅、設備故障、入侵者袋變化。</li>
+          <li><strong>入侵者袋發展</strong>事件卡指示從袋中抽/添加標記。袋裡的成體越多，下次抽噪音越深噩夢。</li>
+          <li><strong>首位玩家順移</strong>下回合首位玩家標記交給左手邊。</li>
+        </ol>
+      </div>
+    </div>
+
+    <figure class="fig">
+      <img src="assets/pa_base_recto.jpg" alt="玩家速查卡 Player Aid 正面" data-zoom>
+      <figcaption><span class="fig-num">圖 3-1</span>玩家速查卡（Player Aid）正面 — 完整回合流程、噪音骰、遭遇、入侵者攻擊</figcaption>
+    </figure>
+
+    <div class="callout tip">
+      <span class="tag">TIP · PASS 不是認輸</span>
+      <p>「PASS 不是認輸——是讓對手先暴露牌力。但若所有人都搶著 PASS，事件階段會更快來——而事件階段，是船的回合。」</p>
+    </div>
+  </div>
+</section>
+
+<div class="barcode" aria-hidden="true"></div>
+
+<!-- ============ 04 ACTIONS ============ -->
+<section class="chapter" id="actions">
+  <div class="ch-head">
+    <span class="ch-num">04</span>
+    <div class="ch-title-wrap">
+      <div class="ch-title">玩家動作</div>
+      <div class="ch-eng">ACTIONS — 12 種選擇，每回合只能 2 個</div>
+    </div>
+    <span class="ch-status status-protocol">STATUS — PROTOCOL</span>
+    <span class="ch-toggle">▼</span>
+  </div>
+  <div class="ch-body">
+    <p class="lead">每張動作牌都可以當「基本動作」打。問題不是你能做什麼，而是你做不完什麼——每回合只有 2 個動作，而你想做的有 12 件。</p>
+
+    <div class="action-grid">
+      <div class="action-card" data-code="MV-01">
+        <h5>MOVE 移動</h5>
+        <p>移動到相鄰房間。穿過<span class="acid-text">技術走廊</span>需用卡牌數字符合的路徑。進入未探索房間會觸發探索流程。</p>
+        <span class="cost">1 ACTION</span>
+      </div>
+      <div class="action-card" data-code="MV-02">
+        <h5>CAREFUL MOVE 謹慎移動</h5>
+        <p>移動但<span class="acid-text">不擲噪音骰</span>。代價：消耗額外卡牌。當你知道隔壁有怪時，這是救命操作。</p>
+        <span class="cost">1 ACTION + 1 CARD</span>
+      </div>
+      <div class="action-card" data-code="SR-01">
+        <h5>SEARCH 搜索</h5>
+        <p>翻開所在房間的<strong>探索標記</strong>，可能是物品、線索，也可能是入侵者卵或屍體。</p>
+        <span class="cost">1 ACTION</span>
+      </div>
+      <div class="action-card" data-code="AT-01">
+        <h5>SHOOT 射擊</h5>
+        <p>對同房間或相鄰房間入侵者開火。消耗彈藥、擲攻擊骰。射擊<span class="warn-text">會製造噪音</span>。</p>
+        <span class="cost">1 ACTION + AMMO</span>
+      </div>
+      <div class="action-card" data-code="AT-02">
+        <h5>MELEE 近戰</h5>
+        <p>面對面與入侵者格鬥。低傷、易受傷，但<span class="acid-text">不消耗彈藥也不製造噪音</span>。</p>
+        <span class="cost">1 ACTION</span>
+      </div>
+      <div class="action-card" data-code="RM-01">
+        <h5>ROOM ACTION 房間動作</h5>
+        <p>使用房間內建功能：發射逃生艙、解密電腦、修發動機、自爆程序等。</p>
+        <span class="cost">1 ACTION</span>
+      </div>
+      <div class="action-card" data-code="IT-01">
+        <h5>PICK UP / DROP 拾取放下</h5>
+        <p>從房間拾起物品或屍體、放入背包。<strong>背包容量有限</strong>。</p>
+        <span class="cost">1 ACTION</span>
+      </div>
+      <div class="action-card" data-code="IT-02">
+        <h5>TRADE 交易</h5>
+        <p>與同房間玩家交換物品。也可以「丟給」對方一張感染牌——如果你恨他的話。</p>
+        <span class="cost">1 ACTION</span>
+      </div>
+      <div class="action-card" data-code="CR-01">
+        <h5>CRAFT 製作</h5>
+        <p>合成更強的物品。<strong>需材料 + 圖紙</strong>。後期決勝負的合成品都靠這個。</p>
+        <span class="cost">1 ACTION + ITEMS</span>
+      </div>
+      <div class="action-card" data-code="HL-01">
+        <h5>FIRST AID 急救</h5>
+        <p>消耗<span class="blood-text">輕傷牌</span>恢復狀態。重傷無法用一般急救處理。</p>
+        <span class="cost">1 ACTION + ITEM</span>
+      </div>
+      <div class="action-card" data-code="OB-01">
+        <h5>OBSERVE 觀察</h5>
+        <p>偷看相鄰房間的入侵者行為卡、未來事件。<span class="acid-text">資訊就是命</span>。</p>
+        <span class="cost">1 ACTION</span>
+      </div>
+      <div class="action-card" data-code="PS-01">
+        <h5>PASS 過牌</h5>
+        <p>結束你的玩家階段。<span class="warn-text">不可反悔</span>——此後直到下回合不能再行動。</p>
+        <span class="cost">FREE</span>
+      </div>
+    </div>
+
+    <figure class="fig">
+      <img src="assets/pa_base_verso.jpg" alt="玩家速查卡 Player Aid 反面" data-zoom>
+      <figcaption><span class="fig-num">圖 4-1</span>玩家速查卡（Player Aid）反面 — 物品清單、Craft 配方、感染檢查、結局條件</figcaption>
+    </figure>
+
+    <div class="callout tip">
+      <span class="tag">TIP · 效率優先</span>
+      <p>「你做的每一個動作，都讓船的時鐘多走一格。最有效率的玩家，是知道<em>什麼不做</em>的玩家。」</p>
+    </div>
+  </div>
+</section>
+
+<div class="barcode" aria-hidden="true"></div>
+
+<!-- ============ 05 INTRUDERS ============ -->
+<section class="chapter danger" id="intruders">
+  <div class="ch-head">
+    <span class="ch-num">05</span>
+    <div class="ch-title-wrap">
+      <div class="ch-title">入侵者圖鑑</div>
+      <div class="ch-eng">HOSTILE LIFEFORMS — 5 種敵人</div>
+    </div>
+    <span class="ch-status status-critical">STATUS — CRITICAL</span>
+    <span class="ch-toggle">▼</span>
+  </div>
+  <div class="ch-body">
+    <p class="lead">沒有人知道它們從哪來。它們不溝通、不投降、不留俘虜。它們從通風管出現、從牆內爬出、從你以為已經清空的房間裡甦醒。</p>
+
+    <table class="intruder-table">
+      <thead>
+        <tr>
+          <th>類型</th>
+          <th>威脅等級</th>
+          <th>行為特徵</th>
+          <th>備註</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="name">幼蟲 LARVA</td>
+          <td><span class="threat low">LOW</span></td>
+          <td>移動緩慢、攻擊力低，但會在玩家身上留下<span class="plasma-text">感染卵</span>。</td>
+          <td>真正的危險是它的胃口——和繁殖速度。</td>
+        </tr>
+        <tr>
+          <td class="name">爬行者 CRAWLER</td>
+          <td><span class="threat low">LOW</span></td>
+          <td>幼蟲的成熟型態，群體出現。基本攻擊但會疊加噪音。</td>
+          <td>單獨好對付，但很少單獨出現。</td>
+        </tr>
+        <tr>
+          <td class="name">成體 ADULT</td>
+          <td><span class="threat mid">MID</span></td>
+          <td>標準殺手型，會主動追擊噪音來源、開門、跨房間。</td>
+          <td>袋裡的成體越多，劇情越糟。</td>
+        </tr>
+        <tr>
+          <td class="name">繁殖者 BREEDER</td>
+          <td><span class="threat high">HIGH</span></td>
+          <td>定期在房間產卵。卵會孵化成新的入侵者。</td>
+          <td>看到就要優先處理，或這船完了。</td>
+        </tr>
+        <tr>
+          <td class="name">女王 QUEEN</td>
+          <td><span class="threat boss">BOSS</span></td>
+          <td>劇本性 BOSS。極高生命、極高傷害、可能召喚援軍。</td>
+          <td>正常局不會遇到，遇到了就準備掛。</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="grid-2">
+      <div class="panel danger">
+        <h4>// 入侵者袋機制</h4>
+        <p>每次玩家進入未探索房間、發出第二個噪音、或事件指示時，從袋中<span class="blood-text">抽取入侵者標記</span>。</p>
+        <ul class="spec">
+          <li><strong>幼蟲/成體</strong>放到對應房間的<strong>遭遇位</strong>，掀開戰鬥</li>
+          <li><strong>空白標記</strong>什麼都沒發生——但要往袋裡<strong>加一個成體</strong>。袋越打越深。</li>
+          <li><strong>抽過的標記</strong>放回袋裡（除非劇本另有規定），所以袋的組成會變化。</li>
+        </ul>
+      </div>
+      <div class="panel">
+        <h4>// 弱點卡 WEAKNESS</h4>
+        <p>每種入侵者有一張<span class="acid-text">弱點卡</span>，遊戲開始時未知。發現後，攻擊該類型造成<strong>額外傷害或無視護甲</strong>。</p>
+        <p>發現弱點需要：解剖屍體、查電腦資料庫、或某些事件卡。<strong>資訊共享與否</strong>——這是半合作的關鍵抉擇。</p>
+      </div>
+    </div>
+
+    <figure class="fig">
+      <img src="assets/pa_carno_recto.jpg" alt="Carnomorphs 擴充入侵者" data-zoom>
+      <figcaption><span class="fig-num">圖 5-1</span>Carnomorphs 食人獸擴充 — 替代入侵者類型的玩家速查卡正面</figcaption>
+    </figure>
+  </div>
+</section>
+
+<div class="barcode" aria-hidden="true"></div>
+
+<!-- ============ 06 COMBAT ============ -->
+<section class="chapter danger" id="combat">
+  <div class="ch-head">
+    <span class="ch-num">06</span>
+    <div class="ch-title-wrap">
+      <div class="ch-title">戰鬥與遭遇</div>
+      <div class="ch-eng">COMBAT — 賭博，不是決鬥</div>
+    </div>
+    <span class="ch-status status-fatal">STATUS — FATAL</span>
+    <span class="ch-toggle">▼</span>
+  </div>
+  <div class="ch-body">
+    <p class="lead">戰鬥不是決鬥——是賭博。你擲骰，它抽行為卡，沒人知道下一秒誰活著。最聰明的戰鬥，是你能逃跑的那一次。</p>
+
+    <div class="grid-2">
+      <div class="panel">
+        <h4>// 遭遇流程 ENCOUNTER</h4>
+        <ol class="step-list">
+          <li><strong>觸發</strong>進入未探索房間、第二噪音、開有噪音的門，或事件指示。</li>
+          <li><strong>抽袋</strong>從入侵者袋抽 1 個標記。</li>
+          <li><strong>放置</strong>對應的入侵者模型出現在當前房間。</li>
+          <li><strong>立即行動</strong>該入侵者立刻翻一張行為卡執行攻擊或追擊。</li>
+        </ol>
+      </div>
+      <div class="panel danger">
+        <h4>// 戰鬥解析 ATTACK</h4>
+        <p>玩家攻擊：擲<strong>攻擊骰</strong>+ 武器修正。命中後造成傷害。</p>
+        <p>入侵者「反擊」：翻其<strong>遭遇牌組</strong>中的卡，由<strong>入侵者選擇最壞的對玩家</strong>執行。</p>
+        <p>射擊永遠製造<strong>噪音</strong>。近戰不會，但你會被打。</p>
+      </div>
+    </div>
+
+    <h3 class="subhead amber">// 傷害與感染 — WOUND &amp; CONTAMINATION</h3>
+
+    <div class="grid-2">
+      <div class="panel amber">
+        <h4>// 輕傷 LIGHT WOUND</h4>
+        <p>抽一張<span style="color:var(--amber)">輕傷牌</span>放入手牌。它佔位、有負面效果，但可以被急救丟棄。</p>
+        <p>累積太多輕傷牌會壓垮你的手牌空間——你會慢慢失去行動能力。</p>
+      </div>
+      <div class="panel danger">
+        <h4>// 重傷 SERIOUS WOUND</h4>
+        <p>抽一張<span class="blood-text">重傷卡</span>。每張都有獨特死法條件（再受擊、進入特定房間、回合結束等）。</p>
+        <p>累積 2 張重傷 = <span class="warn-text">立刻死亡</span>。一張重傷也可能直接觸發死亡條件。</p>
+      </div>
+    </div>
+
+    <div class="callout contam">
+      <span class="icon">≈</span>
+      <span class="tag">CONTAMINATION · 感染協定</span>
+      <p>某些攻擊（特別是幼蟲）會把<span class="plasma-text">感染卡（Contamination Card）</span>洗進你的動作牌堆。它們和正常動作牌一樣抽出來，但效果是負面的——而且會越積越多。</p>
+      <p>到了遊戲後期，每次進<strong>醫療艙做掃描</strong>時，要從手牌與棄牌堆中翻出感染卡——超過閾值你會<span class="warn-text">爆破出新的入侵者</span>。是的，從你身體裡。</p>
+    </div>
+
+    <figure class="fig">
+      <img src="assets/pa_carno_verso.jpg" alt="Carnomorphs Player Aid 反面" data-zoom>
+      <figcaption><span class="fig-num">圖 6-1</span>Carnomorphs 擴充 Player Aid 反面 — 戰鬥與物品速查</figcaption>
+    </figure>
+  </div>
+</section>
+
+<div class="barcode" aria-hidden="true"></div>
+
+<!-- ============ 07 ROOMS ============ -->
+<section class="chapter" id="rooms">
+  <div class="ch-head">
+    <span class="ch-num">07</span>
+    <div class="ch-title-wrap">
+      <div class="ch-title">房間參考</div>
+      <div class="ch-eng">ROOM REFERENCE — 來自說明書原文</div>
+    </div>
+    <span class="ch-status status-reference">STATUS — REFERENCE</span>
+    <span class="ch-toggle">▼</span>
+  </div>
+  <div class="ch-body">
+    <p class="lead">船上 16 個房間各自有獨特的「房間動作」。學會用這些動作，是把劣勢翻成勝利的關鍵。</p>
+
+    <h3 class="subhead">// 標準房間 — 標 "2" 的房間磚</h3>
+
+    <figure class="fig">
+      <img src="assets/room_types.jpg" alt="標準房間類型" data-zoom>
+      <figcaption><span class="fig-num">圖 7-1</span>標準房間類型總覽（說明書原文）— 點擊圖片放大檢視</figcaption>
+    </figure>
+
+    <p>包含的房間有：<strong>巢穴、摧毀蟲卵、儲藏室、手術室、氣閘控制室、餐廳、指揮中心、引擎控制室、減壓艙門控制系統、監控室、佈滿粘液的房間、浴室</strong>等。每個房間磚正面顯示一個獨特的「房間動作」圖示——學會在對的時間到對的房間，是後期生存的關鍵。</p>
+
+    <h3 class="subhead blood">// 特殊房間 — 開局即在主板上</h3>
+
+    <figure class="fig">
+      <img src="assets/special_rooms.jpg" alt="特殊房間" data-zoom>
+      <figcaption><span class="fig-num">圖 7-2</span>特殊房間 — 駕駛艙、引擎室、休眠室、逃生艙</figcaption>
+    </figure>
+
+    <div class="grid-2">
+      <div class="panel">
+        <h4>// 駕駛艙 COCKPIT</h4>
+        <p>檢查座標卡、修改目的地、啟動自爆程序。<strong>遊戲的「方向盤」</strong>——誰控制這裡，誰決定船的命運。</p>
+      </div>
+      <div class="panel">
+        <h4>// 引擎室 ENGINE ROOMS</h4>
+        <p>三個引擎室分別處理 1/2/3 號發動機。修復發動機、檢查運轉狀態。引擎全壞 = 船在原地飄。</p>
+      </div>
+      <div class="panel amber">
+        <h4>// 休眠室 HIBERNATORIUM</h4>
+        <p>遊戲中段「時間軌到藍格」後才能進入。<strong>合法的勝利條件之一</strong>——只要你能撐到那時、沒被感染、有人讓你進來。</p>
+      </div>
+      <div class="panel danger">
+        <h4>// 逃生艙 ESCAPE PODS</h4>
+        <p>用「房間動作」發射逃生艙——把自己（與背包中的物品/屍體）射出船外。容量有限。<strong>第一具死屍出現後自動解鎖</strong>。</p>
+      </div>
+    </div>
+
+    <div class="callout intel">
+      <span class="icon">▸</span>
+      <span class="tag">INTEL · 規劃路線</span>
+      <p>遊戲開局就要在腦中標出「最近的逃生艙在哪」「電腦室在哪」「醫療艙在哪」。每多走一格都是時間。</p>
+    </div>
+  </div>
+</section>
+
+<div class="barcode" aria-hidden="true"></div>
+
+<!-- ============ 08 QUICKREF ============ -->
+<section class="chapter amber" id="quickref">
+  <div class="ch-head">
+    <span class="ch-num">08</span>
+    <div class="ch-title-wrap">
+      <div class="ch-title">規則速查</div>
+      <div class="ch-eng">QUICK REFERENCE — 卡牆速查卡 + 規則總結</div>
+    </div>
+    <span class="ch-status status-quickref">STATUS — QUICK REF</span>
+    <span class="ch-toggle">▼</span>
+  </div>
+  <div class="ch-body">
+    <p class="lead">所有速查卡與規則總結頁集中於此。把這頁印出來、或在筆電上開著，是新手與老手共同的救命稻草。</p>
+
+    <h3 class="subhead amber">// 規則總結（說明書頁 28）</h3>
+    <figure class="fig">
+      <img src="assets/rules_summary.jpg" alt="規則總結" data-zoom>
+      <figcaption><span class="fig-num">圖 8-1</span>規則總結 — 一輪流程、探索、戰鬥、入侵者攻擊、入侵者符號圖鑑（說明書頁 28）</figcaption>
+    </figure>
+
+    <h3 class="subhead">// 遊戲模式（說明書頁 27）</h3>
+    <figure class="fig">
+      <img src="assets/game_modes.jpg" alt="遊戲模式" data-zoom>
+      <figcaption><span class="fig-num">圖 8-2</span>遊戲模式 — 單人/合作、作為入侵者進行遊戲、版圖另一面</figcaption>
+    </figure>
+
+    <h3 class="subhead acid">// Player Aid 速查卡（基礎版 + Carnomorphs 擴充）</h3>
+    <div class="fig-grid">
+      <figure class="fig">
+        <img src="assets/pa_base_recto.jpg" alt="基礎版速查卡正面" data-zoom>
+        <figcaption><span class="fig-num">基礎</span>正面 — 一回合流程</figcaption>
+      </figure>
+      <figure class="fig">
+        <img src="assets/pa_base_verso.jpg" alt="基礎版速查卡反面" data-zoom>
+        <figcaption><span class="fig-num">基礎</span>反面 — 物品/戰鬥/結局</figcaption>
+      </figure>
+      <figure class="fig">
+        <img src="assets/pa_carno_recto.jpg" alt="Carnomorphs 速查卡正面" data-zoom>
+        <figcaption><span class="fig-num">擴充</span>Carnomorphs 正面</figcaption>
+      </figure>
+      <figure class="fig">
+        <img src="assets/pa_carno_verso.jpg" alt="Carnomorphs 速查卡反面" data-zoom>
+        <figcaption><span class="fig-num">擴充</span>Carnomorphs 反面</figcaption>
+      </figure>
+    </div>
+
+    <div class="callout alert">
+      <span class="icon">!</span>
+      <span class="tag">ALERT · 三大新手死法</span>
+      <p>(1) <strong>為了一發子彈在火災房停留</strong> — 回合結束就受傷，可能直接觸發重傷死法。<br>
+         (2) <strong>還沒進醫療艙就跳低溫艙</strong> — 感染計時繼續走，最後從你身體爆出怪。<br>
+         (3) <strong>跟人爭逃生艙時開火</strong> — 擊中隊友會直接造成重傷，整艘船一起死。</p>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="foot">
+  <p class="quote">「在太空中，沒有人聽得見你 PASS。」</p>
+  <p>// END OF RULEBOOK // CREW SURVIVAL PROBABILITY: 14.7% //<br>
+  TRANSMISSION TERMINATED — NMSS COMMAND</p>
+</footer>
+
+</div><!-- /.content-inner -->
+</main>
+</div><!-- /.app -->
+
+<script>
+// ============ 折疊區塊 ============
+document.querySelectorAll('.ch-head').forEach(head => {
+  head.addEventListener('click', e => {
+    head.parentElement.classList.toggle('collapsed');
+  });
+});
+
+// 展開/摺起全部
+document.getElementById('btnExpandAll').addEventListener('click', () => {
+  document.querySelectorAll('.chapter').forEach(c => c.classList.remove('collapsed'));
+});
+document.getElementById('btnCollapseAll').addEventListener('click', () => {
+  document.querySelectorAll('.chapter').forEach(c => c.classList.add('collapsed'));
+});
+
+// ============ Sidebar Active State (scroll spy) ============
+const sections = Array.from(document.querySelectorAll('section.chapter[id]'));
+const links = Array.from(document.querySelectorAll('.sb-link'));
+const hudSection = document.getElementById('hudSection');
+const labelMap = {
+  overview:'01 OVERVIEW', setup:'02 SETUP', turn:'03 TURN', actions:'04 ACTIONS',
+  intruders:'05 INTRUDERS', combat:'06 COMBAT', rooms:'07 ROOMS', quickref:'08 QUICK REF'
+};
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      const id = e.target.id;
+      links.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + id));
+      if (labelMap[id]) hudSection.textContent = 'SECTION — ' + labelMap[id];
+    }
+  });
+}, { rootMargin: '-30% 0px -55% 0px', threshold: 0 });
+sections.forEach(s => obs.observe(s));
+
+// Sidebar links: smooth scroll + (mobile) close sidebar
+links.forEach(l => l.addEventListener('click', e => {
+  document.getElementById('sidebar').classList.remove('open');
+}));
+
+// ============ Search filter ============
+const searchInput = document.getElementById('sbSearch');
+searchInput.addEventListener('input', e => {
+  const q = e.target.value.trim().toLowerCase();
+  links.forEach(l => {
+    const txt = (l.querySelector('.sb-text').textContent + ' ' + (l.dataset.keywords || '')).toLowerCase();
+    l.classList.toggle('hidden', q.length > 0 && !txt.includes(q));
+  });
+});
+
+// ============ Image zoom modal ============
+const modal = document.getElementById('zoomModal');
+const modalImg = document.getElementById('zoomImg');
+document.querySelectorAll('[data-zoom]').forEach(img => {
+  img.addEventListener('click', () => {
+    modalImg.src = img.src;
+    modal.classList.add('active');
+  });
+});
+modal.addEventListener('click', () => modal.classList.remove('active'));
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') modal.classList.remove('active');
+});
+
+// ============ Progress bar ============
+const bar = document.getElementById('progressBar');
+function updateProgress() {
+  const h = document.documentElement;
+  const pct = (h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100;
+  bar.style.width = Math.max(0, Math.min(100, pct)) + '%';
+}
+window.addEventListener('scroll', updateProgress, { passive: true });
+window.addEventListener('resize', updateProgress);
+updateProgress();
+
+// ============ HUD live clock & OXY ============
+const clockEl = document.getElementById('hudClock');
+const startedAt = Date.now();
+setInterval(() => {
+  const e = Math.floor((Date.now() - startedAt) / 1000);
+  const hh = String(Math.floor(e/3600)).padStart(2,'0');
+  const mm = String(Math.floor((e%3600)/60)).padStart(2,'0');
+  const ss = String(e%60).padStart(2,'0');
+  clockEl.textContent = `T+ ${hh}:${mm}:${ss}`;
+}, 1000);
+const oxy = document.getElementById('oxyReadout');
+let oxygen = 67;
+setInterval(() => {
+  oxygen += (Math.random() - 0.5) * 0.4;
+  oxygen = Math.max(60, Math.min(72, oxygen));
+  oxy.textContent = `OXY: ${oxygen.toFixed(0)}%`;
+}, 2400);
+
+// ============ Reveal on scroll ============
+const revObs = new IntersectionObserver(es => {
+  es.forEach(e => { if (e.isIntersecting) e.target.classList.add('in'); });
+}, { threshold: 0.08 });
+document.querySelectorAll('section.chapter, .panel, .action-card, .fig, .callout').forEach(el => {
+  el.classList.add('reveal');
+  revObs.observe(el);
+});
+
+// ============ Mobile sidebar toggle ============
+const mobileBtn = document.getElementById('mobileToggle');
+if (mobileBtn) {
+  mobileBtn.addEventListener('click', () => {
+    document.getElementById('sidebar').classList.toggle('open');
+  });
+}
+</script>
+
+</body>
+</html>
